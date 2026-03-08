@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WhatsAnime Chat</title>
+    <style>
+        :root {
+            --wa-teal: #00a884;
+            --wa-bg: #eae6df;
+            --wa-sidebar: #ffffff;
+            --wa-header: #f0f2f5;
+            --wa-bubble-me: #dcf8c6;
+            --wa-bubble-them: #ffffff;
+            --wa-accent: #ff00f7;
+        }
+
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; height: 100vh; background: #d1d7db; display: flex; overflow: hidden; }
+
+        /* RESPONSIVE SIDEBAR */
+        #sidebar {
+            width: 30%;
+            min-width: 300px;
+            background: var(--wa-sidebar);
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            transition: 0.3s;
+        }
+
+        /* MAIN CHAT AREA */
+        #main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--wa-bg);
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            position: relative;
+        }
+
+        /* MOBILE OPTIMIZATION */
+        @media (max-width: 768px) {
+            #sidebar { width: 100%; position: absolute; height: 100%; left: 0; }
+            #sidebar.hidden { left: -100%; }
+            #main-chat { width: 100%; position: absolute; height: 100%; left: 0; }
+            #main-chat.hidden { left: 100%; }
+        }
+
+        /* UI COMPONENTS */
+        .header { background: var(--wa-header); padding: 12px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #ddd; }
+        .avatar { width: 40px; height: 40px; background: var(--wa-teal); border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
+        
+        .contact-list { flex: 1; overflow-y: auto; background: white; }
+        .contact-item { padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid #f0f2f5; }
+        .contact-item:hover { background: #f5f6f6; }
+        .contact-item.active { background: #ebebeb; }
+
+        #chat-log { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+        .msg { max-width: 80%; padding: 8px 12px; border-radius: 8px; font-size: 14px; position: relative; box-shadow: 0 1px 1px rgba(0,0,0,0.1); margin-bottom: 2px; }
+        .me { align-self: flex-end; background: var(--wa-bubble-me); border-top-right-radius: 0; }
+        .them { align-self: flex-start; background: var(--wa-bubble-them); border-top-left-radius: 0; }
+        .time { font-size: 10px; color: #888; float: right; margin-top: 4px; margin-left: 8px; }
+
+        #input-area { background: var(--wa-header); padding: 10px; display: flex; align-items: center; gap: 8px; }
+        #msg-input { flex: 1; border: none; padding: 10px 15px; border-radius: 20px; outline: none; font-size: 15px; }
+        .icon-btn { border: none; background: none; font-size: 20px; cursor: pointer; color: #54656f; }
+
+        /* LOGIN */
+        #login-screen { position: fixed; inset: 0; background: var(--wa-teal); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: white; padding: 30px; border-radius: 12px; text-align: center; width: 90%; max-width: 350px; }
+        .login-box input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 6px; }
+    </style>
+</head>
+<body>
+
+<div id="login-screen">
+    <div class="login-box">
+        <h2 style="color:var(--wa-teal)">WhatsAnime Chat</h2>
+        <input id="user-name" placeholder="Enter your name">
+        <button onclick="app.login()" style="width:100%; padding:12px; background:var(--wa-teal); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">START CHATTING</button>
+    </div>
+</div>
+
+<aside id="sidebar">
+    <div class="header">
+        <div class="avatar" id="my-avatar">M</div>
+        <div style="flex:1; font-weight:600" id="my-name">Me</div>
+        <button class="icon-btn" onclick="app.addContact()">➕</button>
+    </div>
+    <div class="contact-list" id="contacts-ui"></div>
+</aside>
+
+<main id="main-chat" class="hidden">
+    <div class="header">
+        <button class="icon-btn" id="back-btn" onclick="app.closeChat()" style="display:none">⬅</button>
+        <div class="avatar" id="chat-avatar">?</div>
+        <div style="flex:1">
+            <div id="chat-title" style="font-weight:600">Select Contact</div>
+            <div style="font-size:12px; color:#667781">online</div>
+        </div>
+    </div>
+    <div id="chat-log"></div>
+    <div id="input-area">
+        <input type="text" id="msg-input" placeholder="Type a message">
+        <button onclick="app.send()" style="border:none; background:none; font-size:24px; cursor:pointer;">➤</button>
+    </div>
+</main>
+
+<script>
+    const app = {
+        user: null,
+        activeID: null,
+        contacts: JSON.parse(localStorage.getItem('wa_data')) || [
+            { name: "Anime Global", id: "#0000", msgs: [] }
+        ],
+
+        login() {
+            const name = document.getElementById('user-name').value.trim();
+            if(!name) return;
+            const id = "#" + Math.floor(1000 + Math.random() * 9000);
+            this.user = { name, id };
+            localStorage.setItem('wa_user', JSON.stringify(this.user));
+            location.reload();
+        },
+
+        addContact() {
+            const name = prompt("Enter Contact Name:");
+            if(!name) return;
+            const id = "#" + Math.floor(1000 + Math.random() * 9000);
+            this.contacts.push({ name, id, msgs: [] });
+            this.save();
+            this.render();
+        },
+
+        save() { localStorage.setItem('wa_data', JSON.stringify(this.contacts)); },
+
+        render() {
+            const ui = document.getElementById('contacts-ui');
+            ui.innerHTML = "";
+            this.contacts.forEach(c => {
+                const item = document.createElement('div');
+                item.className = `contact-item ${c.id === this.activeID ? 'active' : ''}`;
+                item.onclick = () => this.openChat(c);
+                item.innerHTML = `
+                    <div class="avatar">${c.name[0]}</div>
+                    <div style="flex:1">
+                        <div style="display:flex; justify-content:space-between">
+                            <b>${c.name}</b> <small style="color:#aaa">${c.id}</small>
+                        </div>
+                        <div style="font-size:13px; color:#888">Tap to message</div>
+                    </div>
+                `;
+                ui.appendChild(item);
+            });
+        },
+
+        openChat(contact) {
+            this.activeID = contact.id;
+            document.getElementById('chat-title').innerText = `${contact.name} ${contact.id}`;
+            document.getElementById('chat-avatar').innerText = contact.name[0];
+            
+            // Mobile View Management
+            if(window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.add('hidden');
+                document.getElementById('main-chat').classList.remove('hidden');
+                document.getElementById('back-btn').style.display = "block";
+            }
+
+            this.renderMsgs();
+            this.render();
+        },
+
+        closeChat() {
+            document.getElementById('sidebar').classList.remove('hidden');
+            document.getElementById('main-chat').classList.add('hidden');
+        },
+
+        send() {
+            const input = document.getElementById('msg-input');
+            const txt = input.value.trim();
+            if(!txt || !this.activeID) return;
+
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const contact = this.contacts.find(c => c.id === this.activeID);
+            contact.msgs.push({ sender: 'me', txt, time });
+            
+            this.save();
+            this.renderMsgs();
+            input.value = "";
+        },
+
+        renderMsgs() {
+            const log = document.getElementById('chat-log');
+            log.innerHTML = "";
+            const contact = this.contacts.find(c => c.id === this.activeID);
+            contact.msgs.forEach(m => {
+                const div = document.createElement('div');
+                div.className = `msg ${m.sender === 'me' ? 'me' : 'them'}`;
+                div.innerHTML = `${m.txt} <span class="time">${m.time}</span>`;
+                log.appendChild(div);
+            });
+            log.scrollTop = log.scrollHeight;
+        }
+    };
+
+    window.onload = () => {
+        const savedUser = JSON.parse(localStorage.getItem('wa_user'));
+        if(savedUser) {
+            app.user = savedUser;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('my-name').innerText = `${app.user.name} ${app.user.id}`;
+            document.getElementById('my-avatar').innerText = app.user.name[0];
+            app.render();
+        }
+    };
+
+    document.getElementById('msg-input').onkeypress = (e) => { if(e.key === 'Enter') app.send(); };
+</script>
+</body>
+</html>
