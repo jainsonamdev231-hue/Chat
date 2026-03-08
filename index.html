@@ -6,118 +6,116 @@
     <title>WhatsAnime Chat</title>
     <style>
         :root {
-            --wa-teal: #00a884;
-            --wa-bg: #eae6df;
-            --wa-sidebar: #ffffff;
-            --wa-header: #f0f2f5;
+            --wa-green: #00a884;
+            --wa-bg: #e5ddd5;
             --wa-bubble-me: #dcf8c6;
             --wa-bubble-them: #ffffff;
-            --wa-accent: #ff00f7;
+            --wa-header: #f0f2f5;
         }
 
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; height: 100vh; background: #d1d7db; display: flex; overflow: hidden; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; background: #d1d7db; display: flex; }
 
-        /* RESPONSIVE SIDEBAR */
+        /* SIDEBAR (Contact List) */
         #sidebar {
-            width: 30%;
-            min-width: 300px;
-            background: var(--wa-sidebar);
-            border-right: 1px solid #ddd;
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
+            width: 30%; min-width: 320px; height: 100%;
+            background: white; border-right: 1px solid #ddd;
+            display: flex; flex-direction: column; transition: 0.3s;
+        }
+
+        /* MAIN CHAT (Message Area) */
+        #main-chat {
+            flex: 1; height: 100%; display: flex; flex-direction: column;
+            background-color: var(--wa-bg);
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
             transition: 0.3s;
         }
 
-        /* MAIN CHAT AREA */
-        #main-chat {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--wa-bg);
-            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
-            position: relative;
-        }
-
-        /* MOBILE OPTIMIZATION */
+        /* RESPONSIVE FIXES */
         @media (max-width: 768px) {
-            #sidebar { width: 100%; position: absolute; height: 100%; left: 0; }
-            #sidebar.hidden { left: -100%; }
-            #main-chat { width: 100%; position: absolute; height: 100%; left: 0; }
-            #main-chat.hidden { left: 100%; }
+            #sidebar { width: 100%; position: absolute; left: 0; }
+            #main-chat { width: 100%; position: absolute; left: 100%; }
+            body.chat-open #sidebar { left: -100%; }
+            body.chat-open #main-chat { left: 0; }
         }
 
-        /* UI COMPONENTS */
-        .header { background: var(--wa-header); padding: 12px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #ddd; }
-        .avatar { width: 40px; height: 40px; background: var(--wa-teal); border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
+        /* UI ELEMENTS */
+        .header { background: var(--wa-header); padding: 10px 16px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #ddd; min-height: 60px; }
+        .avatar { width: 40px; height: 40px; background: var(--wa-green); border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
         
-        .contact-list { flex: 1; overflow-y: auto; background: white; }
-        .contact-item { padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid #f0f2f5; }
-        .contact-item:hover { background: #f5f6f6; }
-        .contact-item.active { background: #ebebeb; }
+        .list-container { flex: 1; overflow-y: auto; }
+        .section-label { padding: 10px 16px; font-size: 12px; color: var(--wa-green); font-weight: bold; background: #f9f9f9; border-bottom: 1px solid #eee; }
+        
+        .item { padding: 12px 16px; display: flex; align-items: center; gap: 15px; cursor: pointer; border-bottom: 1px solid #f5f5f5; }
+        .item:hover { background: #f5f6f6; }
+        .item.active { background: #ebebeb; }
 
-        #chat-log { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
-        .msg { max-width: 80%; padding: 8px 12px; border-radius: 8px; font-size: 14px; position: relative; box-shadow: 0 1px 1px rgba(0,0,0,0.1); margin-bottom: 2px; }
+        #chat-log { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+        .msg { max-width: 80%; padding: 8px 12px; border-radius: 8px; font-size: 14.5px; position: relative; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
         .me { align-self: flex-end; background: var(--wa-bubble-me); border-top-right-radius: 0; }
         .them { align-self: flex-start; background: var(--wa-bubble-them); border-top-left-radius: 0; }
-        .time { font-size: 10px; color: #888; float: right; margin-top: 4px; margin-left: 8px; }
+        .time { font-size: 10px; color: #888; float: right; margin-top: 5px; margin-left: 8px; }
 
-        #input-area { background: var(--wa-header); padding: 10px; display: flex; align-items: center; gap: 8px; }
-        #msg-input { flex: 1; border: none; padding: 10px 15px; border-radius: 20px; outline: none; font-size: 15px; }
-        .icon-btn { border: none; background: none; font-size: 20px; cursor: pointer; color: #54656f; }
+        #input-area { background: #f0f2f5; padding: 10px; display: flex; align-items: center; gap: 10px; }
+        #msg-input { flex: 1; border: none; padding: 12px 15px; border-radius: 25px; outline: none; font-size: 15px; }
+
+        .btn { border: none; background: none; cursor: pointer; font-size: 18px; color: #54656f; padding: 5px; }
+        #back-btn { display: none; }
+        @media (max-width: 768px) { #back-btn { display: block; } }
 
         /* LOGIN */
-        #login-screen { position: fixed; inset: 0; background: var(--wa-teal); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .login-box { background: white; padding: 30px; border-radius: 12px; text-align: center; width: 90%; max-width: 350px; }
-        .login-box input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 6px; }
+        #login-screen { position: fixed; inset: 0; background: var(--wa-green); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 340px; text-align: center; }
+        input[type="text"] { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 5px; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
     <div class="login-box">
-        <h2 style="color:var(--wa-teal)">WhatsAnime Chat</h2>
-        <input id="user-name" placeholder="Enter your name">
-        <button onclick="app.login()" style="width:100%; padding:12px; background:var(--wa-teal); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">START CHATTING</button>
+        <h2 style="color:var(--wa-green)">WhatsAnime</h2>
+        <input id="user-name-in" type="text" placeholder="Enter your name">
+        <button onclick="manager.login()" style="width:100%; padding:12px; background:var(--wa-green); color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">LOGIN</button>
     </div>
 </div>
 
 <aside id="sidebar">
     <div class="header">
-        <div class="avatar" id="my-avatar">M</div>
-        <div style="flex:1; font-weight:600" id="my-name">Me</div>
-        <button class="icon-btn" onclick="app.addContact()">➕</button>
+        <div class="avatar" id="my-avatar">?</div>
+        <div style="flex:1; font-weight:bold" id="my-name">User #0000</div>
+        <button class="btn" onclick="manager.addContact()">➕</button>
     </div>
-    <div class="contact-list" id="contacts-ui"></div>
+    <div class="list-container" id="contact-list">
+        </div>
 </aside>
 
-<main id="main-chat" class="hidden">
+<main id="main-chat">
     <div class="header">
-        <button class="icon-btn" id="back-btn" onclick="app.closeChat()" style="display:none">⬅</button>
-        <div class="avatar" id="chat-avatar">?</div>
+        <button id="back-btn" class="btn" onclick="manager.closeChat()">⬅</button>
+        <div class="avatar" id="active-avatar">?</div>
         <div style="flex:1">
-            <div id="chat-title" style="font-weight:600">Select Contact</div>
-            <div style="font-size:12px; color:#667781">online</div>
+            <div id="active-title" style="font-weight:bold">Select Chat</div>
+            <div id="active-status" style="font-size:12px; color:#667781">online</div>
         </div>
     </div>
     <div id="chat-log"></div>
     <div id="input-area">
         <input type="text" id="msg-input" placeholder="Type a message">
-        <button onclick="app.send()" style="border:none; background:none; font-size:24px; cursor:pointer;">➤</button>
+        <button class="btn" onclick="manager.send()" style="color:var(--wa-green); font-size:24px">➤</button>
     </div>
 </main>
 
 <script>
-    const app = {
+    const manager = {
         user: null,
         activeID: null,
-        contacts: JSON.parse(localStorage.getItem('wa_data')) || [
-            { name: "Anime Global", id: "#0000", msgs: [] }
-        ],
+        data: JSON.parse(localStorage.getItem('wa_data')) || {
+            group: { name: "Anime Global Group", id: "#0000", msgs: [] },
+            privates: []
+        },
 
         login() {
-            const name = document.getElementById('user-name').value.trim();
+            const name = document.getElementById('user-name-in').value.trim();
             if(!name) return;
             const id = "#" + Math.floor(1000 + Math.random() * 9000);
             this.user = { name, id };
@@ -129,52 +127,60 @@
             const name = prompt("Enter Contact Name:");
             if(!name) return;
             const id = "#" + Math.floor(1000 + Math.random() * 9000);
-            this.contacts.push({ name, id, msgs: [] });
+            this.data.privates.push({ name, id, msgs: [] });
             this.save();
-            this.render();
+            this.renderList();
         },
 
-        save() { localStorage.setItem('wa_data', JSON.stringify(this.contacts)); },
+        save() { localStorage.setItem('wa_data', JSON.stringify(this.data)); },
 
-        render() {
-            const ui = document.getElementById('contacts-ui');
-            ui.innerHTML = "";
-            this.contacts.forEach(c => {
-                const item = document.createElement('div');
-                item.className = `contact-item ${c.id === this.activeID ? 'active' : ''}`;
-                item.onclick = () => this.openChat(c);
-                item.innerHTML = `
-                    <div class="avatar">${c.name[0]}</div>
-                    <div style="flex:1">
-                        <div style="display:flex; justify-content:space-between">
-                            <b>${c.name}</b> <small style="color:#aaa">${c.id}</small>
-                        </div>
-                        <div style="font-size:13px; color:#888">Tap to message</div>
-                    </div>
-                `;
-                ui.appendChild(item);
+        renderList() {
+            const container = document.getElementById('contact-list');
+            container.innerHTML = `<div class="section-label">GROUPS</div>`;
+            
+            // Render Group
+            const g = this.data.group;
+            container.innerHTML += this.createItemHTML(g, true);
+
+            container.innerHTML += `<div class="section-label">PRIVATE CHATS</div>`;
+            
+            // Render Privates
+            this.data.privates.forEach(p => {
+                container.innerHTML += this.createItemHTML(p, false);
             });
         },
 
-        openChat(contact) {
-            this.activeID = contact.id;
-            document.getElementById('chat-title').innerText = `${contact.name} ${contact.id}`;
-            document.getElementById('chat-avatar').innerText = contact.name[0];
-            
-            // Mobile View Management
-            if(window.innerWidth <= 768) {
-                document.getElementById('sidebar').classList.add('hidden');
-                document.getElementById('main-chat').classList.remove('hidden');
-                document.getElementById('back-btn').style.display = "block";
-            }
+        createItemHTML(item, isGroup) {
+            return `
+                <div class="item ${this.activeID === item.id ? 'active' : ''}" onclick="manager.openChat('${item.id}')">
+                    <div class="avatar" style="background:${isGroup ? '#075e54' : ''}">${item.name[0]}</div>
+                    <div style="flex:1">
+                        <div style="display:flex; justify-content:space-between">
+                            <b>${item.name}</b>
+                            <small style="color:#aaa">${item.id}</small>
+                        </div>
+                        <div style="font-size:13px; color:#888">Tap to chat</div>
+                    </div>
+                </div>
+            `;
+        },
 
+        openChat(id) {
+            this.activeID = id;
+            const chat = (id === "#0000") ? this.data.group : this.data.privates.find(p => p.id === id);
+            
+            document.getElementById('active-title').innerText = chat.name + " " + chat.id;
+            document.getElementById('active-avatar').innerText = chat.name[0];
+            
+            // Handle Screen Swap
+            document.body.classList.add('chat-open');
             this.renderMsgs();
-            this.render();
+            this.renderList();
         },
 
         closeChat() {
-            document.getElementById('sidebar').classList.remove('hidden');
-            document.getElementById('main-chat').classList.add('hidden');
+            document.body.classList.remove('chat-open');
+            this.activeID = null;
         },
 
         send() {
@@ -183,9 +189,9 @@
             if(!txt || !this.activeID) return;
 
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const contact = this.contacts.find(c => c.id === this.activeID);
-            contact.msgs.push({ sender: 'me', txt, time });
+            const chat = (this.activeID === "#0000") ? this.data.group : this.data.privates.find(p => p.id === this.activeID);
             
+            chat.msgs.push({ sender: 'me', txt, time });
             this.save();
             this.renderMsgs();
             input.value = "";
@@ -194,8 +200,10 @@
         renderMsgs() {
             const log = document.getElementById('chat-log');
             log.innerHTML = "";
-            const contact = this.contacts.find(c => c.id === this.activeID);
-            contact.msgs.forEach(m => {
+            const chat = (this.activeID === "#0000") ? this.data.group : this.data.privates.find(p => p.id === this.activeID);
+            if(!chat) return;
+
+            chat.msgs.forEach(m => {
                 const div = document.createElement('div');
                 div.className = `msg ${m.sender === 'me' ? 'me' : 'them'}`;
                 div.innerHTML = `${m.txt} <span class="time">${m.time}</span>`;
@@ -206,17 +214,17 @@
     };
 
     window.onload = () => {
-        const savedUser = JSON.parse(localStorage.getItem('wa_user'));
-        if(savedUser) {
-            app.user = savedUser;
+        const saved = JSON.parse(localStorage.getItem('wa_user'));
+        if(saved) {
+            manager.user = saved;
             document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('my-name').innerText = `${app.user.name} ${app.user.id}`;
-            document.getElementById('my-avatar').innerText = app.user.name[0];
-            app.render();
+            document.getElementById('my-name').innerText = saved.name + " " + saved.id;
+            document.getElementById('my-avatar').innerText = saved.name[0];
+            manager.renderList();
         }
     };
 
-    document.getElementById('msg-input').onkeypress = (e) => { if(e.key === 'Enter') app.send(); };
+    document.getElementById('msg-input').onkeypress = (e) => { if(e.key === 'Enter') manager.send(); };
 </script>
 </body>
 </html>
