@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS AI: WORLD KNOWLEDGE</title>
+    <style>
+        :root {
+            --bg: #05050a;
+            --panel: rgba(20, 20, 35, 0.9);
+            --accent: #ff00f7;
+            --cyan: #00f3ff;
+            --user-bg: #1a1a2e;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg) url('https://images.alphacoders.com/906/906100.jpg') center/cover fixed;
+            font-family: 'Orbitron', sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #chat-card {
+            width: 450px;
+            height: 700px;
+            background: var(--panel);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--cyan);
+            border-radius: 25px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 50px rgba(0, 243, 255, 0.2);
+        }
+
+        header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+            font-size: 1.2rem;
+            color: var(--cyan);
+            text-shadow: 0 0 10px var(--cyan);
+        }
+
+        #chat-log {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .bubble {
+            max-width: 85%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .ai {
+            align-self: flex-start;
+            background: linear-gradient(135deg, var(--accent), #8000ff);
+            border-bottom-left-radius: 2px;
+            box-shadow: 0 5px 15px rgba(255, 0, 247, 0.3);
+        }
+
+        .user {
+            align-self: flex-end;
+            background: var(--user-bg);
+            border: 1px solid var(--cyan);
+            border-bottom-right-radius: 2px;
+        }
+
+        #typing-indicator {
+            font-size: 0.8rem;
+            color: var(--cyan);
+            margin-left: 20px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        #input-zone {
+            padding: 20px;
+            display: flex;
+            gap: 10px;
+            background: rgba(0,0,0,0.4);
+        }
+
+        input {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(0, 243, 255, 0.5);
+            padding: 15px;
+            color: white;
+            border-radius: 12px;
+            outline: none;
+        }
+
+        button {
+            background: var(--cyan);
+            border: none;
+            padding: 0 25px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover { background: white; transform: scale(1.05); }
+    </style>
+</head>
+<body>
+
+<div id="chat-card">
+    <header>NEXUS CORE AI</header>
+    <div id="chat-log">
+        <div class="bubble ai">I am connected to the global data stream. Ask me anything about the world, science, or history.</div>
+    </div>
+    <div id="typing-indicator">NEXUS is searching data...</div>
+    <div id="input-zone">
+        <input type="text" id="msg-input" placeholder="Ask a question..." autocomplete="off">
+        <button id="send-btn">SEND</button>
+    </div>
+</div>
+
+<script>
+    const log = document.getElementById('chat-log');
+    const input = document.getElementById('msg-input');
+    const btn = document.getElementById('send-btn');
+    const typing = document.getElementById('typing-indicator');
+
+    // MOCK DATA BANK (Simulating "Full World Data")
+    const knowledgeBase = {
+        "hello": "Greetings, Pilot. Systems are nominal. How can I assist you today?",
+        "who are you": "I am an adaptive AI model designed to process global information and assist with complex queries.",
+        "capital of france": "The capital of France is Paris, a major European city and a global center for art and culture.",
+        "what is quantum physics": "Quantum physics is the study of matter and energy at the most fundamental level, specifically at the scale of atoms and subatomic particles.",
+        "how far is the moon": "The Moon is approximately 384,400 kilometers (238,855 miles) away from Earth.",
+        "anime": "Anime refers to a style of animation originating from Japan, characterized by colorful graphics and vibrant characters.",
+        "default": "I have accessed the global archives, but I need a more specific query to provide an accurate data-match. Could you rephrase that?"
+    };
+
+    function addBubble(text, type) {
+        const b = document.createElement('div');
+        b.className = `bubble ${type}`;
+        b.innerText = text;
+        log.appendChild(b);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    async function processAI(query) {
+        typing.style.display = "block";
+        
+        // Simulate "Thinking" time for the AI
+        setTimeout(() => {
+            typing.style.display = "none";
+            const q = query.toLowerCase();
+            let response = knowledgeBase.default;
+
+            // Simple Logic to find keywords in your question
+            for (let key in knowledgeBase) {
+                if (q.includes(key)) {
+                    response = knowledgeBase[key];
+                    break;
+                }
+            }
+            
+            addBubble(response, 'ai');
+        }, 1200);
+    }
+
+    function send() {
+        const val = input.value.trim();
+        if(!val) return;
+        addBubble(val, 'user');
+        input.value = "";
+        processAI(val);
+    }
+
+    btn.onclick = send;
+    input.onkeypress = (e) => { if(e.key === 'Enter') send(); };
+</script>
+
+</body>
+</html>
