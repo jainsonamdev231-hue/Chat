@@ -44,7 +44,7 @@ const ChatEngine = {
 
         // Connect to HiveMQ Public WebSocket Broker
         // This acts as our "free server" hosted on the cloud
-        this.client = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
+        this.client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
 
         // Event: Successfully Connected
         this.client.on('connect', () => {
